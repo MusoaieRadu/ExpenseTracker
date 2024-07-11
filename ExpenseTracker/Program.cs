@@ -1,4 +1,6 @@
 using ExpenseTracker.Components;
+using ExpenseTracker.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+//Configure DB context and connection
+builder.Services.AddDbContext<ExpenseTrackerContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ExpenseTrackerDatabase")
+));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

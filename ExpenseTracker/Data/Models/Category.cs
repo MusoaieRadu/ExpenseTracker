@@ -1,4 +1,4 @@
-﻿namespace ExpenseTracker.Data
+﻿namespace ExpenseTracker.Data.Models
 {
     public class Category
     {
