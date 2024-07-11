@@ -1,6 +1,9 @@
 ﻿@page "/categories"
 @rendermode InteractiveServer
 
+@using ExpenseTracker.Services
+@inject CategoryService CategoryService
+
 <PageTitle>Categories</PageTitle>
 <h3>Categories</h3>
 
@@ -21,12 +24,7 @@
 @code {
     public string Name { set; get; } = "";
     int nextId = 4;
-    List<Category> categories = new List<Category>()
-    {
-          new Category(1, "Food"),
-          new Category(2, "House"),
-          new Category(3, "Entertainment")
-    };
+    List<Category> categories = new List<Category>();
     void Delete(Category cat) => categories.Remove(cat);
     //Uses list searching for checking if the name already exists
     //Even if it O(n) at worst, there probably won't be that many categories
@@ -36,5 +34,9 @@
         foreach(Category s in categories)
             if (s.Name == Name) return;
         categories.Add(new Category(nextId++, Name));
+    }
+    protected override void OnInitialized()
+    {
+        categories = CategoryService.GetCategories();
     }
 }
