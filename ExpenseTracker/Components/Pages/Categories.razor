@@ -8,7 +8,7 @@
 <h3>Categories</h3>
 
 <ol>
-    @foreach(var cat in categories)
+    @foreach(var cat in @categories)
     {
         <li class="list-group-item d-flex justify-content-between">
             <p>@cat.Name</p>
@@ -23,19 +23,27 @@
 <button class="btn btn-success" @onclick = "Add">Add</button>
 @code {
     public string Name { set; get; } = "";
-    int nextId = 4;
     List<Category> categories = new List<Category>();
-    void Delete(Category cat) => categories.Remove(cat);
+    void Delete(Category cat) => CategoryService.RemoveCategory(cat);
     //Uses list searching for checking if the name already exists
     //Even if it O(n) at worst, there probably won't be that many categories
     void Add()
     {
+        int id = 0;
         if (Name == "") return;
-        foreach(Category s in categories)
+        foreach(Category s in CategoryService.GetCategories()){
+            id = s.Id;
             if (s.Name == Name) return;
-        categories.Add(new Category(nextId++, Name));
+        }
+        id++;
+        CategoryService.AddCategory(new Category(id, Name));
     }
     protected override void OnInitialized()
+    {
+        categories = CategoryService.GetCategories();
+        CategoryService.onChange += OnStateChanged;
+    }
+    private void OnStateChanged()
     {
         categories = CategoryService.GetCategories();
     }
