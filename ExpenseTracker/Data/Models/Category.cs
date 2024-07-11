@@ -4,10 +4,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public Category(int Id, string Name)
-        {
-            this.Id = Id;
-            this.Name = Name;
-        }
+
+        public ICollection<Expense> Expenses { get; } = new List<Expense>();
     }
 }

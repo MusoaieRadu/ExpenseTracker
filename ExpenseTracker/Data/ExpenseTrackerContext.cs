@@ -10,19 +10,21 @@ namespace ExpenseTracker.Data
         {
         }
         public virtual DbSet<Category> Categories { get; set; }
-
+        public virtual DbSet<Expense> Expenses { get; set; }
+        public virtual DbSet<Income> Incomes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>()
                 .HasData(new Category[]
                 {
-                    new Category(1, "Food"),
-                    new Category(2, "Travel"),
-                    new Category(3, "Entertainment"),
-                    new Category(4, "Education"),
-                    new Category(5, "Clothes"),
-                    new Category(6, "House")
+                    new Category(){ Id = 1, Name = "Food"},
+                    new Category(){ Id = 2, Name = "Travel" },
+                    new Category(){ Id = 3, Name = "Entertainment"},
+                    new Category(){ Id = 4, Name = "Education" },
+                    new Category(){ Id = 5, Name = "Clothes" },
+                    new Category(){ Id = 6, Name = "House" }
                 });
+           
         }
     }
 }

@@ -36,7 +36,7 @@
             if (s.Name == Name) return;
         }
         id++;
-        CategoryService.AddCategory(new Category(id, Name));
+        CategoryService.AddCategory(new Category { Id = id, Name = Name });
     }
     protected override void OnInitialized()
     {
