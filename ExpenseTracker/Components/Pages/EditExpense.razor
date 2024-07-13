@@ -1,0 +1,31 @@
+﻿@page "/expenses/{expenseId:int}"
+@rendermode InteractiveServer
+
+@using ExpenseTracker.Services
+@inject ExpenseService ExpenseService
+@inject NavigationManager Navigator
+@inject CategoryService CategoryService
+
+<h3>Edit Expense</h3>
+
+<ExpenseForm @bind-Expense=expense></ExpenseForm>
+
+<button class="btn btn-success" @onclick=Update>Save</button>
+
+@code {
+    public Expense expense { get; set; } = null!;
+
+    [Parameter]
+    public int expenseId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        expense = ExpenseService.Get(expenseId);
+    }
+    private void Update()
+    {
+        if (expense.Title == "" || expense.Title == null) return;
+        ExpenseService.Update(expense);
+        Navigator.NavigateTo("/expenses");
+    }
+}

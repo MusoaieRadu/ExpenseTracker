@@ -25,7 +25,7 @@ namespace ExpenseTracker.Services
             _context.SaveChanges();
             this.NotifyCategoryChanged();
         }
-        public event Action OnCategoryChanged = null!;
-        private void NotifyCategoryChanged() => OnCategoryChanged.Invoke();
+        public event Action? OnCategoryChanged;
+        private void NotifyCategoryChanged() => OnCategoryChanged?.Invoke();
     }
 }

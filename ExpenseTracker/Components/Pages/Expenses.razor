@@ -1,0 +1,56 @@
+﻿@page "/expenses"
+@rendermode InteractiveServer
+
+@using ExpenseTracker.Services
+@inject ExpenseService Service
+@inject NavigationManager Navigator
+
+<h3>Expenses</h3>
+
+<table class="table">
+    <thead class="thead-light">
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Date</th>
+            <th scope="col">Planned</th>
+            <th scope="col">Category</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Expense expense in expenses){
+            <tr>
+                <th scope="row">@expense.Title</th>
+                <td>@expense.Amount</td>
+                <td>@expense.Date.ToLocalTime()</td>
+                <td>@expense.Planned</td>
+                <td>@expense.Category.Name</td>
+                <td>
+                    <button class="btn btn-primary" @onclick=@(()=>Edit(expense.Id))>Edit</button>
+                    <button class="btn btn-danger" @onclick=@(()=>Delete(expense.Id))>Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" @onclick=@(()=>@Navigator.NavigateTo("expenses/new"))>Add expense</button>
+
+@code {
+    List<Expense> expenses = new List<Expense>();
+    protected override void OnInitialized()
+    {
+        expenses = Service.GetExpenseList();
+        Service.OnExpenseChange += (() => expenses = Service.GetExpenseList());
+    }
+    private void Delete(int id)
+    {
+        Service.Delete(id);
+    }
+    private void Edit(int id)
+    {
+        string url = "/expenses/" + id;
+        Navigator.NavigateTo(url);
+    }
+}

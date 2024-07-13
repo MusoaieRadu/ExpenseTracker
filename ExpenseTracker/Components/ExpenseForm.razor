@@ -1,0 +1,67 @@
+﻿@using ExpenseTracker.Services
+@inject CategoryService CategoryService
+
+<form>
+    <div class="form-group" style="margin:1em 0;">
+        <label for="expense_name">Name</label>
+        <input @bind=@Expense.Title type="text" class="form-control" id="expense_name" placeholder="Enter expense name" required />
+    </div>
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="expense_date">Date</label>
+        <input @bind=@Expense.Date @onfocusout=@ValidateDate type="datetime-local" class="form-control" aria-describedby="dateHelp" id="expense_date" />
+        <small id="dateHelp" class="form-text text-muted">Date Format : [MM/DD/YYYY] HH:MM</small>
+    </div>
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="expense_amount">Amount</label>
+        <input @bind=@Amount type="number" class="form-control" id="expense_amount" placeholder="Enter amount" />
+    </div>
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="expense_planned">Planned</label>
+        <input type="checkbox" id="expense_planned" @bind=@Expense.Planned />
+    </div>
+
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="expense_category">Category</label>
+        <select @bind=@Expense.CategoryId class="form-select" name="expense_category" id="expense_category">
+            @for (int i = 0; i < categories.Count; i++)
+            {
+                <option value="@categories[i].Id">@categories[i].Name</option>
+            }
+        </select>
+    </div>
+</form>
+
+@code {
+    public List<Category> categories = new List<Category>();
+
+    [Parameter]
+    public Expense Expense { get; set; } = null!;
+
+    //two-way binding
+    [Parameter]
+    public EventCallback<Expense> ExpenseChanged { get; set; }
+
+    public double Amount
+    {
+        get => Expense.Amount;
+        set
+        {
+            if (value < 0) value = -value;
+            Expense.Amount = value;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        categories = CategoryService.GetCategories().ToList();
+    }
+    protected override void OnParametersSet()
+    {
+        Category? category = categories.Find(e => e.Id == Expense.CategoryId);
+        if (category == null) Expense.CategoryId = categories[0].Id;
+    }
+    public void ValidateDate()
+    {
+        if (DateTime.Compare(Expense.Date, DateTime.Now) > 0) Expense.Date = DateTime.Now;
+    }
+}

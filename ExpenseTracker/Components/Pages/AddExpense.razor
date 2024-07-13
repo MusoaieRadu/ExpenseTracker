@@ -1,0 +1,21 @@
+﻿@page "/expenses/new"
+@rendermode InteractiveServer
+
+@using ExpenseTracker.Services
+@inject ExpenseService Service
+@inject NavigationManager Navigator
+
+<h3>Add Expense</h3>
+
+<ExpenseForm @bind-Expense=expense></ExpenseForm>
+
+<button class="btn btn-success" @onclick="Save">Save</button>
+@code{
+    Expense expense = new Expense() { Amount = 0, Title = "", Date = DateTime.Now, Planned = false };
+    private void Save()
+    {
+        if (expense.Title == "" || expense.Title == null) return;
+        Service.Post(expense);
+        Navigator.NavigateTo("/expenses");
+    }
+}
