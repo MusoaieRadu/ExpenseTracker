@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ExpenseTracker.Migrations
 {
     [DbContext(typeof(ExpenseTrackerContext))]
-    [Migration("20240711093501_AddCategoryTable")]
-    partial class AddCategoryTable
+    [Migration("20240713091529_AddCategoriesTable")]
+    partial class AddCategoriesTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

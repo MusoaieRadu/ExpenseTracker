@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ExpenseTracker.Migrations
 {
     [DbContext(typeof(ExpenseTrackerContext))]
-    [Migration("20240711094854_AddIncomeTable")]
-    partial class AddIncomeTable
+    [Migration("20240713094416_AddExpenseTable")]
+    partial class AddExpenseTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,38 +40,6 @@ namespace ExpenseTracker.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Food"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Travel"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Entertainment"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Education"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Clothes"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Name = "House"
-                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Data.Models.Expense", b =>
@@ -82,14 +50,14 @@ namespace ExpenseTracker.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
+                    b.Property<double>("Amount")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
 
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("Planned")
                         .HasColumnType("boolean");
@@ -103,32 +71,6 @@ namespace ExpenseTracker.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Expenses");
-                });
-
-            modelBuilder.Entity("ExpenseTracker.Data.Models.Income", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Incomes");
                 });
 
             modelBuilder.Entity("ExpenseTracker.Data.Models.Expense", b =>
