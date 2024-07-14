@@ -1,0 +1,22 @@
+﻿@page "/incomes/new"
+@rendermode InteractiveServer
+
+@using ExpenseTracker.Services
+@inject IncomeService Service
+@inject NavigationManager Navigator
+
+<h3>Add Income</h3>
+
+<IncomeForm @bind-Income=@Income></IncomeForm>
+
+<button class="btn btn-success" @onclick=Save>Save</button>
+
+@code {
+    public Income Income { set; get; } = new Income() { Amount = 0, Date = DateTime.Now };
+    private void Save()
+    {
+        if (Income.Title == "" || Income.Title == null) return;
+        Service.Post(Income);
+        Navigator.NavigateTo("/incomes");
+    }
+}

@@ -1,0 +1,55 @@
+﻿@page "/incomes"
+@rendermode InteractiveServer
+
+@using ExpenseTracker.Services
+@inject IncomeService IncomeService
+@inject NavigationManager Navigator
+
+<h3>Incomes</h3>
+
+<table class="table">
+    <thead class="thead-light">
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Date</th>
+            <th scope="col">Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Income income in incomes)
+        {
+        <tr>
+            <th scope="row">@income.Title</th>
+            <td>@income.Amount</td>
+            <td>@income.Date.ToLocalTime()</td>
+            <td>@IncomeService.IncomeTypeToString(@income.Type)</td>
+            <td>
+                <button class="btn btn-primary" @onclick=@(()=>Edit(income.Id))>Edit</button>
+                <button class="btn btn-danger" @onclick=@(()=>Delete(@income.Id))>Delete</button>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" @onclick=@(()=>Navigator.NavigateTo("/incomes/new"))>Add Income</button>
+
+@code {
+    public List<Income> incomes { get; set; } = new List<Income>();
+
+    protected override void OnInitialized()
+    {
+        incomes = IncomeService.GetIncomes();
+        IncomeService.OnIncomeChange += (() => incomes = IncomeService.GetIncomes());
+    }
+    private void Delete(int id)
+    {
+        IncomeService.Delete(id);
+    }
+    private void Edit(int id)
+    {
+        string url = "/incomes/" + id;
+        Navigator.NavigateTo(url);
+    }
+}

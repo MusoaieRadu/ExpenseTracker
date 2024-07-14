@@ -1,6 +1,8 @@
 ﻿@using ExpenseTracker.Services
 @inject CategoryService CategoryService
 
+
+@if(categories.Count != 0){
 <form>
     <div class="form-group" style="margin:1em 0;">
         <label for="expense_name">Name</label>
@@ -30,6 +32,8 @@
         </select>
     </div>
 </form>
+}
+else{ <p> You need to have at least one category added before having any expense. </p>}
 
 @code {
     public List<Category> categories = new List<Category>();
@@ -57,8 +61,12 @@
     }
     protected override void OnParametersSet()
     {
-        Category? category = categories.Find(e => e.Id == Expense.CategoryId);
-        if (category == null) Expense.CategoryId = categories[0].Id;
+        if (categories.Count != 0)
+        {
+            Category? category = categories.Find(e => e.Id == Expense.CategoryId);
+            if (category == null) Expense.CategoryId = categories[0].Id;
+            Expense.Date = Expense.Date.ToLocalTime();
+        }
     }
     public void ValidateDate()
     {

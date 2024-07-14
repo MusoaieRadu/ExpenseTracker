@@ -1,0 +1,36 @@
+﻿@page "/incomes/{incomeId:int}"
+@rendermode InteractiveServer
+<h3>Edit Income</h3>
+
+@using ExpenseTracker.Services
+@inject IncomeService Service
+@inject NavigationManager Navigator
+
+
+@if (Income != null)
+{
+    <IncomeForm @bind-Income=Income></IncomeForm>
+    <button class="btn btn-success" @onclick=Update>Save</button>
+}
+else{
+    <p> The income you are trying to edit doesn't exist.</p>
+}
+
+@code {
+
+    public Income Income{ set; get; }
+
+    [Parameter]
+    public int incomeId{ set; get; }
+
+    protected override void OnInitialized()
+    {
+        Income = Service.Get(incomeId);
+    }
+    private void Update()
+    {
+        if (Income.Title == "" || Income.Title == null) return;
+        Service.Update(Income);
+        Navigator.NavigateTo("/incomes");
+    }
+}

@@ -8,9 +8,13 @@
 
 <h3>Edit Expense</h3>
 
-<ExpenseForm @bind-Expense=expense></ExpenseForm>
+@if (@expense != null)
+{
+    <ExpenseForm @bind-Expense=expense></ExpenseForm>
 
 <button class="btn btn-success" @onclick=Update>Save</button>
+}
+else{ <p> We are sorry but the expense you are looking for doesn't exist.</p> } 
 
 @code {
     public Expense expense { get; set; } = null!;

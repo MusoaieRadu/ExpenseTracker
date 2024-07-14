@@ -1,11 +1,16 @@
 ﻿@page "/expenses"
+@page "/expenses/category/{name}"
 @rendermode InteractiveServer
 
 @using ExpenseTracker.Services
 @inject ExpenseService Service
 @inject NavigationManager Navigator
 
-<h3>Expenses</h3>
+@if (@name == null)
+{
+    <h3>Expenses</h3>
+}
+else {<h3>@name Expenses</h3>} 
 
 <table class="table">
     <thead class="thead-light">
@@ -14,7 +19,10 @@
             <th scope="col">Amount</th>
             <th scope="col">Date</th>
             <th scope="col">Planned</th>
-            <th scope="col">Category</th>
+            @if (@name == null)
+            {
+                <th scope="col">Category</th>
+            }
             <th scope="col">Actions</th>
         </tr>
     </thead>
@@ -25,7 +33,9 @@
                 <td>@expense.Amount</td>
                 <td>@expense.Date.ToLocalTime()</td>
                 <td>@expense.Planned</td>
-                <td>@expense.Category.Name</td>
+                @if(@name == null){
+                    <td>@expense.Category.Name</td>
+                }
                 <td>
                     <button class="btn btn-primary" @onclick=@(()=>Edit(expense.Id))>Edit</button>
                     <button class="btn btn-danger" @onclick=@(()=>Delete(expense.Id))>Delete</button>
@@ -39,10 +49,19 @@
 
 @code {
     List<Expense> expenses = new List<Expense>();
+
+    [Parameter]
+    public string? name { set; get; }
     protected override void OnInitialized()
     {
-        expenses = Service.GetExpenseList();
-        Service.OnExpenseChange += (() => expenses = Service.GetExpenseList());
+        if (name == null){
+            expenses = Service.GetExpenseList();
+            Service.OnExpenseChange += (() => expenses = Service.GetExpenseList());
+        }
+        else{
+            expenses = Service.GetExpensesByCategory(name);
+            Service.OnExpenseChange += (() => expenses = Service.GetExpensesByCategory(name));
+        }
     }
     private void Delete(int id)
     {

@@ -3,6 +3,7 @@
 
 @using ExpenseTracker.Services
 @inject CategoryService Service
+@inject NavigationManager Nav
 
 <PageTitle>Categories</PageTitle>
 
@@ -13,7 +14,7 @@
     @foreach(var cat in @categories)
     {
         <li class="d-flex justify-content-between">
-            <div><p>@cat.Name</p></div>
+            <div><a href="#" @onclick=@(()=>Nav.NavigateTo("/expenses/category/"+@cat.Name))>@cat.Name</a></div>
             <button class="btn btn-danger" @onclick = "@(()=>Delete(@cat))">Delete</button>
         </li>
     }

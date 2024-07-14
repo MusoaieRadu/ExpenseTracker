@@ -1,0 +1,54 @@
+﻿@rendermode InteractiveServer
+
+@using ExpenseTracker.Services
+@using ExpenseTracker.Data.Models
+@inject IncomeService Service;
+<form>
+    <div class="form-group" style="margin:1em 0;">
+        <label for="income_name">Name</label>
+        <input @bind=@Income.Title type="text" class="form-control" id="income_name" placeholder="Enter income name" required />
+    </div>
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="income_date">Date</label>
+        <input @bind=@Income.Date @onfocusout=@ValidateDate type="datetime-local" class="form-control" aria-describedby="dateHelp" id="income_date" />
+        <small id="dateHelp" class="form-text text-muted">Date Format : [MM/DD/YYYY] HH:MM</small>
+    </div>
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="income_amount">Amount</label>
+        <input @bind=@Amount type="number" class="form-control" id="income_amount" placeholder="Enter amount" />
+    </div>
+
+    <div class="form-group" style="margin-bottom:1em;">
+        <label for="income_type">Type</label>
+        <select @bind=@Income.Type class="form-select" name="income_type" id="income_type">
+            @foreach(IncomeType type in @types)
+            {
+                <option value=@type>@Service.IncomeTypeToString(@type)</option>
+            }
+        </select>
+    </div>
+</form>
+
+
+@code {
+    public IncomeType[] types { set; get; } = (IncomeType[])Enum.GetValues(typeof(IncomeType));
+    [Parameter]
+    public Income Income{ set; get; }
+
+    [Parameter]
+    public EventCallback<Income> IncomeChanged { set; get; }
+
+    public double Amount
+    {
+        get => Income.Amount;
+        set
+        {
+            if (value < 0) value = -value;
+            Income.Amount = value;
+        }
+    }
+    public void ValidateDate()
+    {
+        if (DateTime.Compare(Income.Date, DateTime.Now) > 0) Income.Date = DateTime.Now;
+    }
+}

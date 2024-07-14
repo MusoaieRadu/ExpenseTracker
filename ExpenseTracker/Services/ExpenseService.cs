@@ -16,6 +16,13 @@ namespace ExpenseTracker.Services
                     .Include(expense => expense.Category)
                     .ToList();
         }
+        public List<Expense> GetExpensesByCategory(string category)
+        {
+            return _context.Expenses
+                    .Include(expense => expense.Category)
+                    .Where(expense => expense.Category.Name == category)
+                    .ToList();
+        }
         public void Delete(int id)
         {
             try
@@ -44,14 +51,10 @@ namespace ExpenseTracker.Services
         }
         public Expense Get(int id)
         {
-            try
-            {
-                Expense? expense = _context.Expenses.Find(id);
-                if (expense == null) throw new ArgumentNullException();
-                return expense;
-            }
-            catch { throw; }
+            Expense? expense = _context.Expenses.Find(id);
+            return expense;
         }
+
         public event Action? OnExpenseChange;
         private void NotifyExpenseChange() => OnExpenseChange?.Invoke();
     }
