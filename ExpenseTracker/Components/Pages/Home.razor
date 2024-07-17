@@ -1,8 +1,113 @@
-﻿@page "/"
+﻿@using System.Globalization
+@page "/"
+
+@inject ExpenseService ExpenseService
+@inject IncomeService IncomeService
+@inject CategoryService CategoryService
 
 <PageTitle>Expense Tracker</PageTitle>
 
-<h1>Welcome!</h1>
 
-<p>Welcome to your personal expense tracker. You can use this app to see what are you
-spending and what you are gaining in order to make better financial decisions!</p>
+<h1>Expense Tracker</h1>
+<p>Welcome to your new expense tracking app!</p>
+
+<div style="display:flex;flex-direction:column; justify-content:space-between;">
+<div style="margin-top:2rem; margin-bottom:1em;">
+    <p style="color:@hintColor;padding:0;margin:0;">Balance</p>
+    <h1 style="color:@color">@Balance.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+</div>
+
+<div style="display:flex; justify-content:space-between; margin-top:2rem;">
+    <div class="incomes">
+        <h2 style="color:@dataColor; margin-bottom:0.65em;font-weight:bold;">Incomes</h2>
+        <div style="display:flex; flex-direction:column; gap:0px">
+            <p style="color:@hintColor; padding:0; margin:0;">@incomeStart - @incomeEnd</p>
+            <h1>@incomeValue.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+        </div>
+        <div style="margin-top:0.65em;">
+            <p style="color:@hintColor;padding:0;margin:0;">Current Month</p>
+            <h1>@monthIncome.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+        </div>
+    </div>
+    <div class="expenses">
+        <h2 style="color:@dataColor; margin-bottom:0.65em;font-weight:bold;">Expenses</h2>
+        <div style="display:flex; flex-direction:column; gap:0px;">
+            <p style="color:@hintColor; padding:0; margin:0;">@expenseStart - @expenseEnd</p>
+            <h1>@expenseValue.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+        </div>
+        <div style="margin-top:0.65em;">
+            <p style="color:@hintColor;padding:0;margin:0;">Current Month</p>
+            <h1>@monthExpenses.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+        </div>
+    </div>
+</div>
+</div>
+<hr />
+<div style="display:flex;justify-content:space-between;">
+<div style="margin-top:2em;">
+    <p style="color:@hintColor;padding:0;margin:0;">Planned Expenses</p>
+    <h1>@plannedExpenses.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+    <p style="color:@hintColor; padding:0;margin:0;">Unplanned Expenses</p>
+    <h1>@unplannedExpenses.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+</div>
+<div style="margin-top:2em;">
+    <p style="color:@hintColor;padding:0;margin:0;">Category with highest expense</p>
+    <h1>@category</h1>
+    <p style="color:@hintColor;padding:0;margin:0;">Value</p>
+    <h1>@highestValue.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+</div>
+</div>
+
+@code{
+    public double Balance { set; get; } = 2000;
+    public double expenseValue = 0, plannedExpenses = 0, unplannedExpenses = 0;
+    public double incomeValue = 0;
+    public double monthExpenses = 0;
+    public double monthIncome = 0;
+    private string color = null!;
+    private string dataColor = "#076f78";
+    private string hintColor = "grey";
+
+    public string? expenseStart, expenseEnd;
+    public string? incomeStart, incomeEnd;
+
+    public string? category;
+    public double highestValue;
+
+    protected override void OnInitialized()
+    {
+        List<Expense> expenses = ExpenseService.GetExpenseList();
+        expenseStart = expenses.Min(a => a.Date).ToString("dd MMM yyyy");
+        expenseEnd = expenses.Max(a => a.Date).ToString("dd MMM yyyy");
+        List<Income> incomes = IncomeService.GetIncomes();
+        incomeStart = incomes.Min(a => a.Date).ToString("dd MMM yyyy");
+        incomeEnd = incomes.Max(a => a.Date).ToString("dd MMM yyyy");
+
+        int month = DateTime.Now.Month;
+
+        expenseValue = expenses.Sum(a => a.Amount);
+        monthExpenses = expenses.Where(m => m.Date.Month == month).Sum(a => a.Amount);
+
+        incomeValue = incomes.Sum(a => a.Amount);
+        monthIncome = incomes.Where(m => m.Date.Month == month).Sum(a => a.Amount);
+
+
+        Balance = incomeValue - expenseValue;
+        if (Balance > 0) color = "green";
+        else color = "red";
+
+        plannedExpenses = expenses.Where(a=>a.Planned == true).Sum(a => a.Amount);
+        unplannedExpenses = expenseValue - plannedExpenses;
+
+        highestValue = 0;
+        List<Category> Categories = CategoryService.GetCategories();
+        foreach(Category cat in Categories)
+        {
+            double temp = expenses.Where(a => a.CategoryId == cat.Id).Sum(b => b.Amount);
+            if (highestValue < temp){
+                highestValue = temp;
+                category = cat.Name;
+            }
+        }
+    }
+}

@@ -33,7 +33,7 @@
 @code {
     public IncomeType[] types { set; get; } = (IncomeType[])Enum.GetValues(typeof(IncomeType));
     [Parameter]
-    public Income Income{ set; get; }
+    public Income Income { set; get; } = null!;
 
     [Parameter]
     public EventCallback<Income> IncomeChanged { set; get; }

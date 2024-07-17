@@ -13,12 +13,14 @@ namespace ExpenseTracker.Services
         public List<Expense> GetExpenseList()
         {
             return _context.Expenses
+                    .AsNoTracking()
                     .Include(expense => expense.Category)
                     .ToList();
         }
         public List<Expense> GetExpensesByCategory(string category)
         {
             return _context.Expenses
+                    .AsNoTracking()
                     .Include(expense => expense.Category)
                     .Where(expense => expense.Category.Name == category)
                     .ToList();
@@ -45,13 +47,15 @@ namespace ExpenseTracker.Services
         public void Update(Expense expense)
         {
             expense.Date = expense.Date.ToUniversalTime();
-            _context.Entry(expense).State = EntityState.Modified;
-            _context.SaveChanges();
-            this.NotifyExpenseChange();
+            expense.Date = DateTime.SpecifyKind(expense.Date, DateTimeKind.Utc);
+            _context.Entry(expense).State = EntityState.Modified; //track the change
+            _context.SaveChanges(); //save 
+            _context.Entry(expense).State = EntityState.Detached; //stop tracking the change
+            this.NotifyExpenseChange(); //notify whoever listens to this change
         }
         public Expense Get(int id)
         {
-            Expense? expense = _context.Expenses.Find(id);
+            Expense? expense = _context.Expenses.AsNoTracking().FirstOrDefault(X => X.Id == id);
             return expense;
         }
 

@@ -1,17 +1,28 @@
-﻿@page "/incomes"
+﻿@using System.Globalization
+
+@page "/incomes"
 @rendermode InteractiveServer
 
-@using ExpenseTracker.Services
 @inject IncomeService IncomeService
 @inject NavigationManager Navigator
 
 <h3>Incomes</h3>
+<div class="form-group">
+<label for="start">Start Date</label>
+    <input @bind=@start type="datetime-local" id="start" name="start" class="form-control" />
+</div>
+<div class="form-group">
+<label for="end">End Date</label>
+<input @bind=@end class="form-control" type="datetime-local" id="end" name="end"/>
+</div>
+<button style="margin:1em 0;"class="btn btn-primary" @onclick=@Filter>Filter</button>
+<br />
 
 <table class="table">
     <thead class="thead-light">
         <tr>
             <th scope="col">Name</th>
-            <th scope="col">Amount</th>
+            <th scope="col" @onclick=@SortAmount style="cursor:pointer">Amount</th>
             <th scope="col">Date</th>
             <th scope="col">Type</th>
         </tr>
@@ -33,15 +44,29 @@
     </tbody>
 </table>
 
+<div style="display:flex;justify-content:space-between;">
+<h2>TOTAL : @Total.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h2>
 <button class="btn btn-primary" @onclick=@(()=>Navigator.NavigateTo("/incomes/new"))>Add Income</button>
+</div>
 
 @code {
     public List<Income> incomes { get; set; } = new List<Income>();
+
+    public double Total;
+    public DateTime start, end;
 
     protected override void OnInitialized()
     {
         incomes = IncomeService.GetIncomes();
         IncomeService.OnIncomeChange += (() => incomes = IncomeService.GetIncomes());
+        Total = incomes.Sum(m => m.Amount);
+    }
+    private bool sortAmount = false;
+    private void SortAmount()
+    {
+        sortAmount = !sortAmount;
+        if (sortAmount == true) incomes = incomes.OrderByDescending(A => A.Amount).ToList();
+        else incomes = IncomeService.GetIncomes();
     }
     private void Delete(int id)
     {
@@ -51,5 +76,12 @@
     {
         string url = "/incomes/" + id;
         Navigator.NavigateTo(url);
+    }
+    private void Filter()
+    {
+        incomes = IncomeService.GetIncomes().
+                    Where(a=> (a.Date.Ticks >= start.Ticks && a.Date.Ticks <= end.Ticks))
+                    .ToList();
+        Total = incomes.Sum(m => m.Amount);
     }
 }

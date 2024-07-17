@@ -1,8 +1,9 @@
-﻿@page "/expenses"
+﻿@using System.Globalization
+
+@page "/expenses"
 @page "/expenses/category/{name}"
 @rendermode InteractiveServer
 
-@using ExpenseTracker.Services
 @inject ExpenseService Service
 @inject NavigationManager Navigator
 
@@ -10,15 +11,26 @@
 {
     <h3>Expenses</h3>
 }
-else {<h3>@name Expenses</h3>} 
+else {<h3>@name Expenses</h3>
+}
+<label for="type">View</label>
+<select @bind=@Choice class="form-select" name="type" id="type">
+    <option value=0>All</option>
+    <option value=1>Planned</option>
+    <option value=2>Unplanned</option>
+</select>
+<br /><br />
 
 <table class="table">
     <thead class="thead-light">
         <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Date</th>
-            <th scope="col">Planned</th>
+            <th scope="col" >Name</th>
+            <th scope="col" @onclick=@SortAmount style="cursor:pointer">Amount</th>
+            <th scope="col" >Date</th>
+            @if (choice == 0)
+            {
+                <th scope="col">Planned</th>
+            }
             @if (@name == null)
             {
                 <th scope="col">Category</th>
@@ -32,7 +44,9 @@ else {<h3>@name Expenses</h3>}
                 <th scope="row">@expense.Title</th>
                 <td>@expense.Amount</td>
                 <td>@expense.Date.ToLocalTime()</td>
-                <td>@expense.Planned</td>
+                @if(choice==0){
+                    <td>@expense.Planned</td>
+                }
                 @if(@name == null){
                     <td>@expense.Category.Name</td>
                 }
@@ -45,13 +59,39 @@ else {<h3>@name Expenses</h3>}
     </tbody>
 </table>
 
+<div style="display:flex;justify-content:space-between;">
+<h2>TOTAL : @Total.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h2>
 <button class="btn btn-primary" @onclick=@(()=>@Navigator.NavigateTo("expenses/new"))>Add expense</button>
-
+</div>
 @code {
     List<Expense> expenses = new List<Expense>();
 
     [Parameter]
     public string? name { set; get; }
+
+    public double Total;
+
+    private int choice;
+    public int Choice {
+        get => choice;
+        set
+        {
+            choice = value;
+            UpdateList();  
+        }
+    }
+    private bool sortAmount = false;
+    private void SortAmount()
+    {
+        sortAmount = !sortAmount;
+        if (sortAmount == true) expenses = expenses.OrderByDescending(A => A.Amount).ToList();
+        else
+        {
+            if (name == null) expenses = Service.GetExpenseList();
+            else expenses = Service.GetExpensesByCategory(name);
+        }
+    }
+
     protected override void OnInitialized()
     {
         if (name == null){
@@ -62,6 +102,7 @@ else {<h3>@name Expenses</h3>}
             expenses = Service.GetExpensesByCategory(name);
             Service.OnExpenseChange += (() => expenses = Service.GetExpensesByCategory(name));
         }
+        Total = expenses.Sum(m => m.Amount);
     }
     private void Delete(int id)
     {
@@ -71,5 +112,19 @@ else {<h3>@name Expenses</h3>}
     {
         string url = "/expenses/" + id;
         Navigator.NavigateTo(url);
+    }
+    private void UpdateList()
+    {
+        if (choice == 0){
+            expenses = Service.GetExpenseList();
+        }
+        else if (choice == 1){
+            expenses = Service.GetExpenseList().Where(a => a.Planned == true).ToList();
+        }
+        else{
+            expenses = Service.GetExpenseList().Where(a => a.Planned == false).ToList();
+        }
+        if (name != null) expenses = expenses.Where(a => a.Category.Name == name).ToList();
+        Total = expenses.Sum(m => m.Amount);
     }
 }
