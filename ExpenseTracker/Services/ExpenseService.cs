@@ -42,6 +42,7 @@ namespace ExpenseTracker.Services
             expense.Date = expense.Date.ToUniversalTime();
             _context.Expenses.Add(expense);
             _context.SaveChanges();
+            _context.Entry(expense).State = EntityState.Detached;
             this.NotifyExpenseChange();
         }
         public void Update(Expense expense)

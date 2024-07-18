@@ -12,12 +12,13 @@ namespace ExpenseTracker.Services
         {
             _context = context;
         }
-        public List<Income> GetIncomes() => _context.Incomes.ToList();
+        public List<Income> GetIncomes() => _context.Incomes.AsNoTracking().ToList();
         public void Post(Income income)
         {
             income.Date = income.Date.ToUniversalTime();
             _context.Incomes.Add(income);
             _context.SaveChanges();
+            _context.Entry(income).State = EntityState.Detached;
             this.NotifyIncomeChange();
         }
         public void Delete(int id)
@@ -35,13 +36,15 @@ namespace ExpenseTracker.Services
         public void Update(Income income)
         {
             income.Date = income.Date.ToUniversalTime();
+            income.Date = DateTime.SpecifyKind(income.Date, DateTimeKind.Utc);
             _context.Entry(income).State = EntityState.Modified;
             _context.SaveChanges();
+            _context.Entry(income).State = EntityState.Detached;
             this.NotifyIncomeChange();
         }
         public Income Get(int id)
         {
-            Income? income = _context.Incomes.Find(id);
+            Income? income = _context.Incomes.AsNoTracking().FirstOrDefault(x=> x.Id == id);
             return income;
         }
         public event Action? OnIncomeChange;

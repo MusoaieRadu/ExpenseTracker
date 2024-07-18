@@ -1,6 +1,8 @@
 ﻿@using System.Globalization
 @page "/"
 
+@rendermode InteractiveServer
+
 @inject ExpenseService ExpenseService
 @inject IncomeService IncomeService
 @inject CategoryService CategoryService
@@ -43,19 +45,48 @@
 </div>
 </div>
 <hr />
-<div style="display:flex;justify-content:space-between;">
-<div style="margin-top:2em;">
+
+
+<!--PIE CHART FOR EXPENSES-->
+<div style="display:flex;justify-content:space-between; align-items:center;">
+<div style="display:flex;justify-content:center;">
+    <PieChart @ref="pieChart" Width="400"></PieChart>
+</div>
+<div>
+<div>
     <p style="color:@hintColor;padding:0;margin:0;">Planned Expenses</p>
     <h1>@plannedExpenses.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
     <p style="color:@hintColor; padding:0;margin:0;">Unplanned Expenses</p>
     <h1>@unplannedExpenses.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
 </div>
-<div style="margin-top:2em;">
+<div>
     <p style="color:@hintColor;padding:0;margin:0;">Category with highest expense</p>
     <h1>@category</h1>
     <p style="color:@hintColor;padding:0;margin:0;">Value</p>
     <h1>@highestValue.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
 </div>
+</div>
+</div>
+<hr />
+<!--PIE CHART FOR INCOMES-->
+<div style="display:flex;justify-content:space-between; align-items:center; margin-top:20px;">
+    <div>
+    <div>
+        <p style="color:@hintColor;padding:0;margin:0;">Type with biggest income</p>
+        <h1>@incomeName</h1>
+        <p style="color:@hintColor;padding:0;margin:0;">Value</p>
+        <h1>@maxIncome.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+    </div>
+    <div>
+         <p style="color:@hintColor;padding:0;margin:0;">Type with the lowest income</p>
+         <h1>@lowIncome</h1>
+         <p style="color:@hintColor;padding:0;margin:0;">Value</p>
+         <h1>@minIncome.ToString("C", CultureInfo.CreateSpecificCulture("RO-ro"))</h1>
+    </div>
+    </div>
+    <div>
+        <PieChart @ref="incomeChart" Width="400"></PieChart>
+    </div>
 </div>
 
 @code{
@@ -69,13 +100,28 @@
     private string hintColor = "grey";
 
     public string? expenseStart, expenseEnd;
-    public string? incomeStart, incomeEnd;
+    public string? incomeStart, incomeEnd, incomeName, lowIncome;
 
     public string? category;
-    public double highestValue;
+    public double highestValue, maxIncome, minIncome;
+
+    private int catNum = 0;
+
+
+    //CODE FOR PIE CHART
+    private PieChart pieChart = default!;
+    private PieChartOptions pieChartOptions = default!;
+    private ChartData chartData = default!;
+    private string[]? backgroundColors;
+
+    //CODE FOR INCOME PIE CHART
+    private PieChart incomeChart = default!;
+    private PieChartOptions incomeChartOptions = default!;
+    private ChartData incomeChartData = default!;
 
     protected override void OnInitialized()
     {
+
         List<Expense> expenses = ExpenseService.GetExpenseList();
         expenseStart = expenses.Min(a => a.Date).ToString("dd MMM yyyy");
         expenseEnd = expenses.Max(a => a.Date).ToString("dd MMM yyyy");
@@ -99,8 +145,10 @@
         plannedExpenses = expenses.Where(a=>a.Planned == true).Sum(a => a.Amount);
         unplannedExpenses = expenseValue - plannedExpenses;
 
-        highestValue = 0;
         List<Category> Categories = CategoryService.GetCategories();
+
+        highestValue = 0;
+        Dictionary<string, double?> values = new Dictionary<string, double?>();
         foreach(Category cat in Categories)
         {
             double temp = expenses.Where(a => a.CategoryId == cat.Id).Sum(b => b.Amount);
@@ -108,6 +156,67 @@
                 highestValue = temp;
                 category = cat.Name;
             }
+            values.Add(cat.Name, temp);
         }
+        catNum = Categories.Count;
+        //PIE CHART for expenses
+        backgroundColors = ColorUtility.CategoricalTwelveColors;
+        PieChartDataset dataset = new PieChartDataset() { Data = values.Values.ToList(), BackgroundColor= GetRandomBgColors() };
+        chartData = new ChartData() { Labels = values.Keys.ToList(), Datasets = new List<IChartDataset>() { dataset } };
+        pieChartOptions = new();
+        pieChartOptions.Responsive = true;
+        pieChartOptions.Plugins.Title!.Text = "Expenses per category";
+        pieChartOptions.Plugins.Title.Display = true;
+
+
+        //DATA FOR INCOME CHART
+        Dictionary<string, double?> incomeValues = new Dictionary<string, double?>();
+        List<IncomeType> types = Enum.GetValues(typeof(IncomeType)).Cast<IncomeType>().ToList();
+        List<string> typenames = new List<string>();
+
+        maxIncome = 0; minIncome = double.MaxValue;
+        foreach(IncomeType type in types)
+        {
+            string name = IncomeService.IncomeTypeToString(type);
+            double temp = incomes.Where(x => x.Type == type).Sum(x=>x.Amount);
+            if(maxIncome < temp)
+            {
+                maxIncome = temp;
+                incomeName = name;
+            }
+            if(minIncome > temp)
+            {
+                minIncome = temp;
+                lowIncome = name;
+            }
+            incomeValues.Add(name, temp);
+            typenames.Add(name);
+        }
+        //PIE CHART FOR INCOME
+        dataset = new PieChartDataset() { Data = incomeValues.Values.ToList(), BackgroundColor = GetRandomBgColors() };
+
+        incomeChartData = new ChartData() { Labels = typenames, Datasets = new List<IChartDataset>() { dataset } };
+        incomeChartOptions = new();
+        incomeChartOptions.Responsive = true;
+        incomeChartOptions.Plugins.Title!.Text = "Income by types";
+        incomeChartOptions.Plugins.Title.Display = true;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await pieChart.InitializeAsync(chartData, pieChartOptions);
+            await incomeChart.InitializeAsync(incomeChartData, incomeChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+    private List<string> GetRandomBgColors()
+    {
+        var colors = new List<string>();
+        for (var index = 0; index < catNum; index++)
+        {
+            colors.Add(backgroundColors![index]);
+        }
+        return colors;
     }
 }

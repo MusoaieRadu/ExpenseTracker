@@ -19,6 +19,7 @@ namespace ExpenseTracker.Services
         {
             _context.Categories.Add(category);
             _context.SaveChanges();
+            _context.Entry(category).State = EntityState.Detached;
             this.NotifyCategoryChanged();
         }
         public void Delete(Category category)

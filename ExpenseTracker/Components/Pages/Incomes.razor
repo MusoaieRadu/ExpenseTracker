@@ -53,7 +53,9 @@
     public List<Income> incomes { get; set; } = new List<Income>();
 
     public double Total;
-    public DateTime start, end;
+    public DateTime start = DateTime.Now, end = DateTime.Now;
+
+    private bool filtered = false;
 
     protected override void OnInitialized()
     {
@@ -66,11 +68,16 @@
     {
         sortAmount = !sortAmount;
         if (sortAmount == true) incomes = incomes.OrderByDescending(A => A.Amount).ToList();
-        else incomes = IncomeService.GetIncomes();
+        else{
+
+            if (!filtered) incomes = IncomeService.GetIncomes();
+            else Filter();
+        }
     }
     private void Delete(int id)
     {
         IncomeService.Delete(id);
+        Total = incomes.Sum(m => m.Amount);
     }
     private void Edit(int id)
     {
@@ -83,5 +90,6 @@
                     Where(a=> (a.Date.Ticks >= start.Ticks && a.Date.Ticks <= end.Ticks))
                     .ToList();
         Total = incomes.Sum(m => m.Amount);
+        filtered = true;
     }
 }

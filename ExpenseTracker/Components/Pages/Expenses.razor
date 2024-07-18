@@ -89,6 +89,7 @@ else {<h3>@name Expenses</h3>
         {
             if (name == null) expenses = Service.GetExpenseList();
             else expenses = Service.GetExpensesByCategory(name);
+            UpdateList();
         }
     }
 
@@ -107,6 +108,7 @@ else {<h3>@name Expenses</h3>
     private void Delete(int id)
     {
         Service.Delete(id);
+        Total = expenses.Sum(m => m.Amount);
     }
     private void Edit(int id)
     {
